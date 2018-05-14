@@ -10,10 +10,12 @@ import itertools
 import random
 import os 
 import multiprocessing
+import numpy as np
+import scipy as sp
 from pymatgen import Structure
 from pymatgen.analysis.structure_matcher import StructureMatcher
 from pymatgen.symmetry.analyzer import SpacegroupAnalyzer 
-from pymatgen.io.vaspio import Poscar
+from pymatgen.io.vasp import Poscar
 from apply_distortions import match_atoms
 
 def count_crystal_system(crystal_system_stats, space_grp, tot):
@@ -59,10 +61,21 @@ def bravais_collect(collect_structures, total_structs):
     f.write("-------------------------------------------------------------------------------------\n\n")
     f.close() 
         
-def random_product(*args, **kwds):
+#def random_product(*args, **kwds):
+#    "Random selection from itertools.product(*args, **kwds)"
+#    pools = map(tuple, args) * kwds.get('repeat', 1)
+#    return tuple(random.choice(pool) for pool in pools)
+def random_product(*args, repeat=1):
     "Random selection from itertools.product(*args, **kwds)"
-    pools = map(tuple, args) * kwds.get('repeat', 1)
+    pools = [tuple(pool) for pool in args] * repeat
     return tuple(random.choice(pool) for pool in pools)
+
+def random_combination(iterable, r):
+    "Random selection from itertools.combinations(iterable, r)"
+    pool = tuple(iterable)
+    n = len(pool)
+    indices = sorted(random.sample(range(n), r))
+    return tuple(pool[i] for i in indices)
 
 
 def compare_structures(strt_list_to_compare):
@@ -156,18 +169,37 @@ def write_to_file(invars, collect_structures):
 def collect(invars, parent, collect_structures, new_species, count_structures):        
             
     tiling = []
-    for i, specie in enumerate(parent.species):
-        if i in new_species:
-            tiling.append(invars.ion_sub)
-        else:
-            tiling.append(str(specie.symbol))
+    atom_list = np.array([i.symbol for i in parent.species])
+    '''If vacancy ordering is requested...
+    Use boolean mask to create vacancies in the cell '''     
+    if invars.ion_sub == 'Vac':
+        
+        mask = np.ones(parent.num_sites, dtype=bool)
+        new_species = list(new_species)
+        mask[new_species] = False
+        tiling = atom_list[mask]
+        
+        reduced_frac_coords = parent.frac_coords[mask]
+        tmp_struct = Structure(parent.lattice.matrix, tiling, reduced_frac_coords)
+        
+        '''Else, order new atoms by label'''
+    else:    
+        for i, specie in enumerate(atom_list):
+            if i in new_species:
+                tiling.append(invars.ion_sub)
+            else:
+                tiling.append(str(specie))
             
-    tmp_struct = Structure(parent.lattice_vectors(), tiling, parent.frac_coords)
+        tmp_struct = Structure(parent.lattice.matrix, tiling, parent.frac_coords)
             
-    space_group = int(SpacegroupAnalyzer(tmp_struct).get_spacegroup_number())
+    space_group = int(SpacegroupAnalyzer(tmp_struct, symprec=invars.symprec).get_space_group_number())
             
     # The user may not want to collect structures with P1 symmetry 
     if invars.P1_evaluate == '.FALSE.' and space_group == 1:
+        pass
+    # Bias the search for unique structures to a few select space groups
+    
+    elif invars.search_bias != None and space_group not in invars.search_bias:
         pass
     else:
         count_structures += 1
@@ -202,7 +234,7 @@ def anion_combo_cal(invars, parent, i):
 def cation_decorate(invars, parent):
     os.chdir(invars.run_dir)
     f = open("ORDERING_OUTPUT.txt", 'a')
-    f.write("Statistics for anion ordering:\n\n")
+    f.write("Statistics for cation ordering:\n\n")
     f.write("-------------------------------------------------------------------------------------\n\n")    
     f.close()
     num_cations_to_order = parent.composition.as_dict()[invars.center_atom]
@@ -280,6 +312,43 @@ def anions_decorate(invars, parent):
 
     f.close()
     return collect_structures
-     
+
+''' Routine to decorate lattice by combination for sites manually 
+provided by user'''   
+def unrestricted_decorate(invars, parent):
+    os.chdir(invars.run_dir)
+    f = open("ORDERING_OUTPUT.txt", 'a')
+    f.write("Statistics for anion ordering:\n\n")
+    f.write("-------------------------------------------------------------------------------------\n\n")
+    f.close()    
     
+    combo_order = int(len(invars.ions_list_to_order)*invars.sub_ratio)
+    #print(combo_order)
+    collect_structures = dict()
+    count_structures = 0
     
+    if invars.randsearch == '.FALSE.':    
+        for new_ions in itertools.combinations(invars.ions_list_to_order, combo_order):
+        
+            collect_structures, count_structures = collect(invars, parent, collect_structures, new_ions, count_structures)        
+    
+        return collect_structures
+        
+    else:
+        count = 0
+        
+        # If user does not specify the maximum number of iterations use 
+        # total combo length        
+        if invars.numiter == None:
+            invars.numiter = sp.special.comb(len(invars.ions_list_to_order), combo_order)        
+            print(invars.numiter) 
+        while count_structures <= invars.maxrand and count <= invars.numiter:
+            count += 1 
+            new_ions = random_combination(invars.ions_list_to_order, combo_order)
+            #print(new_ions)
+            # convert tuple of tuples to list  
+            #new_ligands = [item  for sublist in ligand_combos for item in sublist]
+            
+            collect_structures, count_structures = collect(invars, parent, collect_structures, new_ions, count_structures)        
+            
+    return collect_structures

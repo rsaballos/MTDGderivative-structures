@@ -7,7 +7,7 @@ Created on Fri Sep  9 10:23:58 2016
 """
 
 from UserInput import Conf
-from pymatgen.io.vaspio import Poscar
+from pymatgen.io.vasp import Poscar
 import lattice_decoration 
 import os
 import time
@@ -32,7 +32,7 @@ invars = Conf(args.input)
 
 poscar = Poscar.from_file(args.parent)
 parent_struct = poscar.structure
-os.chdir(invars.run_dir)
+#print(os.chdir(invars.run_dir))
 if invars.restart == ".FALSE.":
     
     with open("ORDERING_OUTPUT.txt", 'a') as file:
@@ -73,10 +73,15 @@ if __name__ == '__main__':
         #collect Bravais lattice info
         lattice_decoration.bravais_collect(collect_structures, total_structs)
         lattice_decoration.write_to_file(invars, collect_structures)
-
+    elif invars.calc_mode == 3:
+        collect_structures = lattice_decoration.unrestricted_decorate(invars, parent_struct)
+        collect_structures, total_structs = lattice_decoration.declutter_dict(collect_structures,invars.nprocs)
+        
+        lattice_decoration.bravais_collect(collect_structures, total_structs)
+        lattice_decoration.write_to_file(invars, collect_structures)
         end_status('success')
     elif invars.calc_mode == "ERROR":
-        print "FATAL ERROR!"
+        print("FATAL ERROR!")
         end_status('error')
     elif invars.calc_mode == "post-processing":
     
