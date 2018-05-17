@@ -29,7 +29,7 @@ def count_crystal_system(crystal_system_stats, space_grp, tot):
         crystal_system_stats['Tetragonal'] += tot
     elif space_grp > 142 and space_grp <= 167:
         crystal_system_stats['Trigonal'] += tot
-    elif space_grp > 167 and space_grp <= 194:
+    elif space_grp > 167 and space_grp <= 195:
         crystal_system_stats['Hexagonal'] += tot
     elif space_grp > 195 and space_grp <= 230:
         crystal_system_stats['Cubic'] += tot
