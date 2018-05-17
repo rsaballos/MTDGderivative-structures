@@ -21,17 +21,17 @@ from apply_distortions import match_atoms
 def count_crystal_system(crystal_system_stats, space_grp, tot):
     if space_grp <= 2:
         crystal_system_stats['Triclinic'] += tot
-    elif space_grp > 2 and space_grp <= 15:
+    elif space_grp <= 15:
         crystal_system_stats['Monoclinic'] += tot
-    elif space_grp > 15 and space_grp <= 74:
+    elif space_grp <= 74:
         crystal_system_stats['Orthorhombic'] += tot
-    elif space_grp > 74 and space_grp <= 142:
+    elif space_grp <= 142:
         crystal_system_stats['Tetragonal'] += tot
-    elif space_grp > 142 and space_grp <= 167:
+    elif space_grp <= 167:
         crystal_system_stats['Trigonal'] += tot
-    elif space_grp > 167 and space_grp <= 195:
+    elif space_grp <= 195:
         crystal_system_stats['Hexagonal'] += tot
-    elif space_grp > 195 and space_grp <= 230:
+    elif space_grp <= 230:
         crystal_system_stats['Cubic'] += tot
     
     return crystal_system_stats
