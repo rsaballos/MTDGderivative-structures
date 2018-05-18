@@ -29,7 +29,7 @@ def count_crystal_system(crystal_system_stats, space_grp, tot):
         crystal_system_stats['Tetragonal'] += tot
     elif space_grp <= 167:
         crystal_system_stats['Trigonal'] += tot
-    elif space_grp <= 195:
+    elif space_grp <= 194:
         crystal_system_stats['Hexagonal'] += tot
     elif space_grp <= 230:
         crystal_system_stats['Cubic'] += tot
@@ -46,7 +46,7 @@ def bravais_collect(collect_structures, total_structs):
                                 'Hexagonal':0,
                                 'Cubic':0}
                                 
-    f.write("Anion ordering stats by space group.\n")    
+    f.write("Ordering stats by space group.\n")    
 
     for spgrp in collect_structures:  
         f.write("space_group # {}\t {}\n".format(spgrp,len(collect_structures[spgrp])) )
@@ -54,7 +54,7 @@ def bravais_collect(collect_structures, total_structs):
             
     f.write("\n")        
     f.write("The total # of unique structures is {}\n\n".format(total_structs)) 
-    f.write("Anion ordering stats by crystal system.\n")
+    f.write("Ordering stats by crystal system.\n")
     for Brav_lat in crystal_system_stats:
         f.write("{}\t {}\n".format(Brav_lat, crystal_system_stats[Brav_lat]))
     
