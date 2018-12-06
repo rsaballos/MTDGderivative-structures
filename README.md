@@ -12,5 +12,5 @@ The goal of SOCCR is to enable users to formulate chemical principles for active
 For more detailed information please refer to the README.pdf
 Please make sure to cite the following paper if you use this code:
 Nenian Charles, Richard J. Saballos, and James M. Rondinelli "Structural Diversity from Anion Order in Heteroanionic Materials"
-<em>Chemistry of Materials</em> 2018 30 (10), 3528-3537  
+<em>Chemistry of Materials</em> **30** (10), 3528-3537 (2018)
 DOI: 10.1021/acs.chemmater.8b01336
