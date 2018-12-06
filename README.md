@@ -10,3 +10,7 @@ The goal of SOCCR is to enable users to formulate chemical principles for active
 4. Using data mining techniques to identify descriptors for ion order.
 
 For more detailed information please refer to the README.pdf
+Please make sure to cite the following paper if you use this code:
+Nenian Charles, Richard J. Saballos, and James M. Rondinelli "Structural Diversity from Anion Order in Heteroanionic Materials"
+Chemistry of Materials 2018 30 (10), 3528-3537  
+DOI: 10.1021/acs.chemmater.8b01336
